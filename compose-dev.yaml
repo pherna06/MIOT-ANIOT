@@ -1,6 +1,6 @@
 services:
   esp-idf:
     image: espressif/idf
-    command: source /opt/esp/idf/export.sh
-    device_cgroup_rules:
-    - c 188:* rmw
+    command: source /opt/esp/esp-idf/export.sh && /bin/bash
+    tty: true
+    privileged: true
