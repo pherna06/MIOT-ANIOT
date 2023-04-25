@@ -1,0 +1,9 @@
+services:
+  esp-idf:
+    image: espressif/idf
+    volumes:
+    - type: bind
+      source: /var/run/docker.sock
+      target: /var/run/docker.sock
+    device_cgroup_rules:
+    - c 188:* rmw
