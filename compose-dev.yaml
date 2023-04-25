@@ -1,6 +1,0 @@
-services:
-  esp-idf:
-    image: espressif/idf
-    command: source /opt/esp/esp-idf/export.sh && /bin/bash
-    tty: true
-    privileged: true
