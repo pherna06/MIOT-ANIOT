@@ -61,3 +61,19 @@ e_3 -> Comunicación mediante colas
     último valor disponible de la cola en la memoria de la variable que hemos
     pasado como referencia a dicha función.
 
+e_4 -> Uso de eventos
+
+  Q > ¿Qué debe hacer la tarea inicial tras registrar el 'handle'? ¿Puede
+    finalizar?
+
+  A > Una vez creado el bucle de eventos y registrado el 'handle' del evento
+    `HALL_NEWSAMPLE`, basta con llamar a la tarea de muestreo, que se encarga
+    por si sola de leer periódicamente el sensor Hall y 'postear' el valor
+    leído mediante un evento HALL_NEWSAMPLE (mediante el 'loop handle').
+
+      Al crear el bucle de eventos, este existe independientemente de la tarea
+    que lo crea. Así, respondiendo a la pregunta, la tarea inicial puede
+    finalizar. En nuestro caso, sin embargo, evitamos que finalice mientras que
+    se siga ejecutando la tarea de muestreo, pues los parámetros (el único: el
+    periodo de muestreo) de dicha tarea están almacenados en la pila de 
+    `app_main`.
