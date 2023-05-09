@@ -2,6 +2,6 @@
 
 void app_main(void)
 {
-    // Sleep infinitely
+    // Sleep indefinitely
     printf("Hello world!");
 }
