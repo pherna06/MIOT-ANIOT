@@ -42,3 +42,22 @@ e_2 -> Creación de una tarea para realizar el muestreo
       `reading_task_parameters`, con una variable que determina el periodo de
       muestreo y otra variable que determina la dirección (puntero) en la que
       almacenar los valores muestreados.
+
+e_3 -> Comunicación mediante colas
+  
+  Q > Al enviar un dato por una cola, ¿el dato se pasa por copia o por
+    referencia? Consulta la documentación para responder.
+
+  A > Al llamar a la función `xQueueSend`, el valor del elemento pasado por
+    referencia como argumento a la función (`&hall`) se copia en el espacio que
+    ocupa el siguiente elemento libre de la cola.
+
+      Es decir, la cola existe como un elemento (con memoria reservada en
+    función de su tamaño) independiente del contexto en que se llame a la
+    función `xQueueSend`. Todo esto suponiendo que la cola se haya creado
+    correctamente y no se haya destruido en otra parte.
+
+      Se da una situación análoga para `xQueueReceive`, en la que se copia el
+    último valor disponible de la cola en la memoria de la variable que hemos
+    pasado como referencia a dicha función.
+
