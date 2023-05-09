@@ -12,12 +12,12 @@
 
 
 // Period of the main loop in miliseconds
-#define PERIOD_MS 1000
-
-const char *TAG = "main";
+#define PERIOD_MS 2000
 
 void app_main(void)
 {
+    static const char *TAG = "app_main";
+    
     ESP_LOGI(TAG, "Start of app_main");
     ESP_LOGW(TAG, "T\n> This app takes readings from the internal Hall sensor, "
                   "which uses channels 0 and 3 of ADC1 "

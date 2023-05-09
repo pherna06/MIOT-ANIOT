@@ -1,0 +1,44 @@
+e_1 -> Muestreo periódico del sensor de efecto Hall
+
+  Q > ¿Qué prioridad tiene la tarea inicial que ejecuta la función `app_main()`?
+    ¿Con qué llamada de ESP-IDF podemos conocer la prioridad de una tarea?
+
+  A > De acuerdo a la documentación de ESP-IDF, la tarea principal que ejecuta
+    `app_main` tiene una prioridad RTOS fija de 1 (un nivel por encima de la
+    prioridad mínima).
+
+      Por otra parte, para conocer la prioridad de una tarea en tiempo de
+    ejecución, se puede usar la función `uxTaskPriorityGet(...)`, que toma
+    como argumento un 'handle' de la tarea cuya prioridad se quiere saber. Si
+    dicha tarea es la que se está ejecutando, basta con pasar un 'handle'
+    `NULL`.
+
+e_2 -> Creación de una tarea para realizar el muestreo
+
+  Q > ¿Cómo sincronizas ambas tareas? ¿Cómo sabe la tarea inicial que hay un
+    nuevo dato generado por la tarea muestreadora?
+
+  A > Sincronizamos la tarea utilizando una variable global (`static`) llamada
+    `read`.
+      - Inicialmente está a 0ç
+      - Cuando la tarea de muestreo realiza una lectura, pone su valor a 1.
+      - La tarea principal entra en un bucle que comprueba reiteradamente el
+        valor de la variable `read`. Si este es 1, muestra por serie el valor de
+        la variable de la lectura y pone el valor de `read` a 0.
+
+      Respecto a la validez de esta sincronización, la tarea de muestreo tiene
+    prioridad 5 (mayor que la prioridad de la tarea principal, que es 0). Por
+    tanto, la tarea principal se encuentra comprobando el valor de `read` todo
+    el rato entre los 'delays' de la tarea de muestreo.
+
+      * Se añade un pequeño 'delay' en el bucle de la tarea principal para que
+    no salte el 'watchdog' de la tarea `IDLE`.
+
+    Q > Si además de pasar el periodo como parámetro, quisiéramos pasar como
+      argumento la dirección en la que la tarea muestreadora debe escribir las
+      lecturas, ¿cómo pasaríamos los dos argumentos a la nueva tarea?
+
+    A > Basta con definir un `struct`, en nuestro caso llamado
+      `reading_task_parameters`, con una variable que determina el periodo de
+      muestreo y otra variable que determina la dirección (puntero) en la que
+      almacenar los valores muestreados.
