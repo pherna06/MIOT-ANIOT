@@ -1,0 +1,15 @@
+#ifndef __APP_EVENTS_H__
+#define __APP_EVENTS_H__
+
+// Base
+ESP_EVENT_DECLARE_BASE(APP_EVENTS);
+
+// Events
+enum
+{
+    HALL_EVENT_NEWSAMPLE,
+    HALL_EVENT_FILTERSAMPLE,
+    APP_EVENT_MONITOR
+};
+
+#endif // __APP_EVENTS_H__

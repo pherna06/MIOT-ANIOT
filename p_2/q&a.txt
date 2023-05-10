@@ -77,3 +77,19 @@ e_4 -> Uso de eventos
     se siga ejecutando la tarea de muestreo, pues los parámetros (el único: el
     periodo de muestreo) de dicha tarea están almacenados en la pila de 
     `app_main`.
+
+e_5 -> Gestión de múltiples tareas
+
+  Q > ¿Qué opinas de esta estructura de código? ¿Es razonable el número de
+    tareas empleado? ¿Qué cambiarías en el diseño?
+
+  A > Considero que la estructura del código está bien a nivel general. El
+    número de tareas también me parecen razonables, aunque quizá se podría
+    incluir la tarea de filtrado dentro de la de muestreo, lo que en nuestro
+    caso no sólo eliminaría una tarea, sino también un 'handler' del evento 
+    HALL_NEWSAMPLE, junto con toda la complejidad implícita de pasar los valores
+    leídos de la tarea de muestreo a la tarea de filtrado.
+
+      Respecto al diseño general, se podríán plantear mejoras como la
+    modularización de las distintas funcionalidades en componentes de ESP-IDF
+    (comando `idf.py create-component`).
