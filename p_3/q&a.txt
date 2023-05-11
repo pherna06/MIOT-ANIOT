@@ -1,0 +1,12 @@
+e_1 -> Uso de timers
+
+  Q > ¿Qué hará la tarea inicial (la que invoca a `app_main()`) tras
+    configurar el 'timer' y el evento?
+
+  A > Nada, puede terminar sin problemas, siempre que no se definan en ella
+    ninguna variable de la que dependa el 'callback' del 'timer' o el
+    'handler' del evento.
+
+e_2 -> Encendido de LEDs con GPIO
+
+  Q > 
