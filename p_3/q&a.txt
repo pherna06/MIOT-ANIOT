@@ -26,3 +26,7 @@ e_3 -> Lectura con GPIO
     abarca de los 2.3 V a los 3.6 V, siendo 3.3 V el voltaje recomendado. Por
     ello, si conectamos alguna fuente eléctrica a los pines del ESP32, 
     debemos mantenernos en dicho rango para evitar dañar el chip.
+
+e_4 -> Contador binario
+
+e_5 -> Interrupciones
