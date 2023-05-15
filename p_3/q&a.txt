@@ -16,3 +16,13 @@ e_2 -> Encendido de LEDs con GPIO
     la cuestión se utilizan cuando el GPIO se configura como entrada para que
     la entrada tenga un valor fijo cuando no esté 'conectada' a nada.
 
+e_3 -> Lectura con GPIO
+
+  Q > ¿Qué voltaje se observa en los botones y 'switches' del entrenador?
+    ¿Podemos conectarlos a los pines del ESP32?
+
+  A > Ahora mismo no tengo acceso físico al laboratorio. Respondiendo a la
+    segunda pregunta, según la documentación, el voltaje operativo del ESP32
+    abarca de los 2.3 V a los 3.6 V, siendo 3.3 V el voltaje recomendado. Por
+    ello, si conectamos alguna fuente eléctrica a los pines del ESP32, 
+    debemos mantenernos en dicho rango para evitar dañar el chip.
