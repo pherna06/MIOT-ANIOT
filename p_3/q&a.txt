@@ -9,4 +9,10 @@ e_1 -> Uso de timers
 
 e_2 -> Encendido de LEDs con GPIO
 
-  Q > 
+  Q > ¿Qué diferencia hay entre habilitar el 'pull-up' o el 'pull-down' del
+    GPIO elegido?
+
+  A > Ninguna, puesto que el GPIO aquí funciona como salida. Los parámetros de
+    la cuestión se utilizan cuando el GPIO se configura como entrada para que
+    la entrada tenga un valor fijo cuando no esté 'conectada' a nada.
+
