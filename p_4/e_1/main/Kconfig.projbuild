@@ -1,0 +1,13 @@
+menu "App Configuration"
+    config APP_PERIOD_MS
+        int "ADC Reading Period in ms"
+        default 1000
+        help
+            The period in miliseconds between ADC readings.
+
+    config APP_SAMPLES_PER_READING
+        int "Number of ADC Samples per Reading"
+        default 32
+        help
+            The number of ADC samples to take per reading.
+endmenu

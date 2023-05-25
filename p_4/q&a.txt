@@ -1,0 +1,45 @@
+e_1 -> Lectura de fuente de tensión variable
+
+  Q > ¿Qué factor de atenuación debes configurar para el ADC?
+
+  A > Puesto que vamos a suministrar una tensión de hasta 3.3 V, elegimos el
+    mayor factor de atenuación posible (`ADC_ATTEN_DB_11`), que de acuerdo a la
+    documentación de 'Espressif', puede procesar valores de hasta 2600 mV.
+
+  Q > Compara las medidas del ADC con medidas hechas con el múltimetro del
+    laboratorio.
+
+  A > No estoy haciendo esta práctica en el laboratorio, pero he construido un
+    circuito para conseguir una tensión variable de hasta 3.0 V.
+
+    5V (ESP) -> R [1 000 Ω] -> * -> R [2 000 Ω] -> GND (ESP)
+                               |
+                               * -> Pot [10 000 Ω] -> GND (ESP)
+                               |
+                               * -> ADC-GPIO (ESP)
+
+    Con esta configuración, si el potenciómetro está en su valor máximo (10 kΩ),
+    el valor teórico de las resistencias en paralelo es de (~ 1 666 Ω), con lo
+    que se obtendría un tensión teórica cercana a los 3.1 V. Por otra parte, si
+    está en su valor mínimo (~ 0 Ω), el valor teórico de las resistencias en
+    paralelo es prácticamente 0 Ω; es decir, toda la tensión cae en la primera
+    resistencia y la tensión resultante sería de 0.0 V.
+
+    Finalmente, medimos con un multimetro la diferencia de tensión, obteniendo
+    los siguientes resultados:
+      - ESP32: 142  mV | Multimetro: 0.00 V
+      - ESP32: 142  mV | Multimetro: 0.06 V
+      - ESP32: 190  mV | Multimetro: 0.17 V
+      - ESP32: 270  mV | Multimetro: 0.24 V
+      - ESP32: 780  mV | Multimetro: 0.75 V
+      - ESP32: 1300 mV | Multimetro: 1.26 V
+      - ESP32: 1750 mV | Multimetro: 1.71 V
+      - ESP32: 2000 mV | Multimetro: 1.95 V
+      - ESP32: 2220 mV | Multimetro: 2.17 V
+      - ESP32: 2540 mV | Multimetro: 2.50 V
+      - ESP32: 2800 mV | Multimetro: 2.77 V
+      - ESP32: 3000 mV | Multimetro: 2.97 V
+      - ESP32: 3030 mV | Multimetro: 3.00 V
+
+    Como se puede observar, los valores leídos por el ADC son ligeramente
+    inferiores a los medidos con el multimetro (entre 20-40 mV).
