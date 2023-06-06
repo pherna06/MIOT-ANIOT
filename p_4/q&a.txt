@@ -43,3 +43,6 @@ e_1 -> Lectura de fuente de tensión variable
 
     Como se puede observar, los valores leídos por el ADC son ligeramente
     inferiores a los medidos con el multimetro (entre 20-40 mV).
+
+e_2 -> Lectura de distancias
+

@@ -1,0 +1,121 @@
+menu "Distance Sensor Configuration"
+    choice
+        prompt "Distance Sensor ADC Unit"
+        default DISTANCE_SENSOR_ADC_UNIT_1
+        help
+            Select the type of distance sensor you are using.
+
+        config DISTANCE_SENSOR_ADC_UNIT_1
+            bool "ADC Unit 1"
+            help
+                Select this option if you are using ADC Unit 1.
+
+        config DISTANCE_SENSOR_ADC_UNIT_2
+            bool "ADC Unit 2"
+            help
+                Select this option if you are using ADC Unit 2.
+    
+    endchoice
+
+    choice
+        prompt "Distance Sensor ADC Attenuation"
+        default DISTANCE_SENSOR_ADC_ATTEN_DB_11
+        help
+            Select the attenuation of the ADC unit you are using.
+
+        config DISTANCE_SENSOR_ADC_ATTEN_DB_0
+            bool "0 dB"
+            help
+                Select this option if you are using 0 dB attenuation.
+
+        config DISTANCE_SENSOR_ADC_ATTEN_DB_2_5
+            bool "2.5 dB"
+            help
+                Select this option if you are using 2.5 dB attenuation.
+
+        config DISTANCE_SENSOR_ADC_ATTEN_DB_6
+            bool "6 dB"
+            help
+                Select this option if you are using 6 dB attenuation.
+
+        config DISTANCE_SENSOR_ADC_ATTEN_DB_11
+            bool "11 dB"
+            help
+                Select this option if you are using 11 dB attenuation.
+
+    endchoice
+
+    choice
+        prompt "Distance Sensor ADC Width"
+        default DISTANCE_SENSOR_ADC_WIDTH_BIT_12
+        help
+            Select the width of the ADC unit you are using.
+
+        config DISTANCE_SENSOR_ADC_WIDTH_BIT_9
+            bool "9 bit"
+            help
+                Select this option if you are using 9 bit width.
+
+        config DISTANCE_SENSOR_ADC_WIDTH_BIT_10
+            bool "10 bit"
+            help
+                Select this option if you are using 10 bit width.
+
+        config DISTANCE_SENSOR_ADC_WIDTH_BIT_11
+            bool "11 bit"
+            help
+                Select this option if you are using 11 bit width.
+
+        config DISTANCE_SENSOR_ADC_WIDTH_BIT_12
+            bool "12 bit"
+            help
+                Select this option if you are using 12 bit width.
+
+    endchoice
+
+    config DISTANCE_SENSOR_ADC_VREF_MV
+        int "Distance Sensor ADC Vref (mV)"
+        default 1100
+        help
+            Select the Vref of the ADC unit you are using.
+
+    menu "Default Args"
+        config DISTANCE_SENSOR_DEFAULT_NAME
+            string "Distance Sensor Default Name"
+            default "Distance Sensor"
+            help
+                Select the default name of the distance sensor.
+
+        config DISTANCE_SENSOR_DEFAULT_ADC1_CHANNEL
+            int "Distance Sensor Default ADC1 Channel"
+            default 0
+            range 0 7
+            help
+                Select the default ADC1 channel of the distance sensor.
+
+        config DISTANCE_SENSOR_DEFAULT_ADC2_CHANNEL
+            int "Distance Sensor Default ADC2 Channel"
+            default 0
+            range 0 9
+            help
+                Select the default ADC2 channel of the distance sensor.
+
+        config DISTANCE_SENSOR_DEFAULT_PERIOD_MS
+            int "Distance Sensor Default Period (ms)"
+            default 1000
+            help
+                Select the default period of the distance sensor.
+
+        config DISTANCE_SENSOR_DEFAULT_SAMPLES
+            int "Distance Sensor Default Samples"
+            default 32
+            help
+                Select the default samples of the distance sensor.
+
+        config DISTANCE_SENSOR_DEFAULT_QUEUE_SIZE
+            int "Distance Sensor Default Queue Size"
+            default 1
+            help
+                Select the default queue size of the distance sensor.
+    endmenu
+endmenu
