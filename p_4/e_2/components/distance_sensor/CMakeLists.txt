@@ -1,11 +1,15 @@
 idf_component_register(
     SRCS
-        "distance_sensor.c"
-        "util/adc.c"
-        "util/sampling.c"
-        "util/readings.c"
+        distance_sensor.c
+        distance_sensor_events.c
+        distance_sensor_reading.c
+        util/adc1.c
+        util/adc2.c
+        util/sampling_timer.c
+        util/multisampling.c
+        util/storage.c
     INCLUDE_DIRS
-        "include"
-        "util"
-    REQUIRES "esp_adc_cal"
+        include
+    REQUIRES
+        esp_adc_cal
 )

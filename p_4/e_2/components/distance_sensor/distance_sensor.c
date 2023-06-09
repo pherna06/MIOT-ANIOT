@@ -1,10 +1,14 @@
 #include "distance_sensor.h"
-#include "./util/adc.c"
-#include "./util/sampling.c"
-#include "./util/readings.c"
+
+#include "util/adc.h"
+#include "util/sampling_timer.h"
+#include "util/multisampling.h"
+#include "util/storage.h"
 
 #include "string.h"
 
+
+// Distance Sensor [Handle] //
 #define DISTANCE_SENSOR_NAME_BUFSIZE 32
 
 struct distance_sensor_handle {
@@ -13,73 +17,88 @@ struct distance_sensor_handle {
     // ADC Input
     adc_input_t adc_input;
 
-    // Sampling
-    sampling_t sampling;
+    // Sampling Timer
+    sampling_timer_t sampling_timer;
+
+    // Multisampling
+    multisampling_t multisampling;
 
     // Readings
-    readings_t readings;
+    storage_t storage;
 };
 
-// VOLTAGE TO DISTANCE FUNCTION
+// VOLTAGE TO DISTANCE FUNCTION [LINEAR APPROXIMATION] //
 uint8_t _voltage_mv_to_distance_mm(int voltage_mv) {
-    // P1
-    // - x (mV) = 300
-    // - y (1/mm) = 1/(400 + 4.2) = 0.002474
+    // Point 1
+    // · x (mV)                   = 300
+    // · y (1/mm) = 1/(400 + 4.2) = 0.002474
 
-    // P2
-    // - x (mV) = 3000
-    // - y (1/mm) = 1/(35 + 4.2)  = 0.025510
+    // Point 2
+    // · x (mV)                   = 3000
+    // · y (1/mm) = 1/(35 + 4.2)  = 0.025510
 
     // line equation given two points
     static const float m = (0.025510 - 0.002474) / (3000 - 300);
     float y = m * ( (float) voltage_mv - 300 ) - 0.002474;
 
-    // from 1/(L + 4.2) = y
+    // from 1/(L + 4.2) = y, where L is distance in mm
     return (uint8_t) ( (1 / y) - 4.2 );
 }
 
-// SAMPLING FUNCTION
+// SAMPLING FUNCTION [FOR SAMPLING TIMER] //
 void _sampling_fn(void *arg) {
     static const char *TAG = "(Distance Sensor) Sampling Function";
     esp_err_t err;
 
     distance_sensor_handle_t handle = (distance_sensor_handle_t) arg;
 
-    // Reading
-    distance_sensor_reading_t reading;
-
-    // Timestamp
-    reading.timestamp = _get_timestamp();
-
     // Multisample ADC readings
-    reading.adc_reading = _adc_multisample(
-        &(handle->sampling),
-        _adc_read,
-        &(handle->adc_input)
-    );
+    int adc_reading = -1;
+    if ( (err = do_multisampling(
+        &(handle->multisampling),
+        read_adc_input,
+        &(handle->adc_input),
+        &adc_reading
+    )) ) {
+        ESP_LOGE(TAG, "Multisampling failed");
+        return;
+    }
 
     // To voltage
-    reading.voltage_mv = _adc_reading_to_voltage_mv(reading.adc_reading);
+    int voltage_mv = adc_reading_to_voltage_mv(adc_reading);
 
     // To distance
-    reading.distance_mm = _voltage_mv_to_distance_mm(reading.voltage_mv);
+    uint8_t distance_mm = _voltage_mv_to_distance_mm(voltage_mv);
+
+    // Create reading
+    distance_sensor_reading_t reading;
+    make_distance_sensor_reading(
+        &reading,
+        adc_reading,
+        voltage_mv,
+        distance_mm
+    );
 
     // Save reading
-    _save_last_reading(&(handle->readings), &reading);
-
-    // post DISTANCE_SENSOR_EVENT_READING
-    if ( (err = esp_event_post(
-        DISTANCE_SENSOR_EVENT,
-        DISTANCE_SENSOR_EVENT_READING,
-        &handle,
-        sizeof(distance_sensor_reading_t),
-        0
-    )) ) {
-        ESP_LOGE(TAG, "Could not post DISTANCE_SENSOR_EVENT_READING");
+    if ( (err = push_reading(&(handle->storage), &reading)) ) {
+        ESP_LOGE(TAG, "Could not save reading");
+        return;
     }
+
+    // Post DISTANCE_SENSOR_READING_EVENT
+    post_distance_sensor_reading_event(
+        &handle,
+        sizeof(distance_sensor_handle_t)
+    );
 }
 
-// CREATE FUNCTION
+
+
+
+
+// FUNCTIONS //
+
+// Create Distance Sensor Handle
 esp_err_t distance_sensor_create(
     distance_sensor_create_args_t *args,
     distance_sensor_handle_t *handle
@@ -103,58 +122,101 @@ esp_err_t distance_sensor_create(
     // Name
     strncpy((*handle)->name, args->name, DISTANCE_SENSOR_NAME_BUFSIZE);
 
-    // ADC Input
-    if ( (err = _configure_adc_input(
+    // Configure ADC Input
+    if ( (err = configure_adc_input(
         &((*handle)->adc_input),
         args->adc_input.gpio_num,
         args->adc_input.channel_num
     )) ) {
-        ESP_LOGE(TAG, "ADC configuration failed");
-        goto ds_create_error__after_handle_allocation;
+        ESP_LOGE(TAG, "ADC input configuration failed");
+        goto ds_create__error_after_handle_allocation;
     }
 
-    // Sampling
-    if ( (err = _configure_sampling(
-        &((*handle)->sampling),
+    // Configure Sampling Timer
+    if ( ( err = configure_sampling_timer(
+        &((*handle)->sampling_timer),
         _sampling_fn,
         *handle,
-        args->sampling.period_ms,
-        args->sampling.samples
-    )) ) {
-        ESP_LOGE(TAG, "Sampling configuration failed");
-        goto ds_create_error__after_adc_input_configuration;
+        args->sampling_timer.period_ms
+    ))) {
+        ESP_LOGE(TAG, "Sampling timer configuration failed");
+        goto ds_create__error_after_adc_input_configuration;
     }
 
-    // Readings
-    if ( (err = _configure_readings(
-        &((*handle)->readings),
-        args->readings.queue_size
-    ))) {
-        ESP_LOGE(TAG, "Readings configuration failed");
-        goto ds_create_error__after_sampling_configuration;
+    // Configure Multisampling
+    if ( (err = configure_multisampling(
+        &((*handle)->multisampling),
+        args->multisampling.samples_per_reading
+    )) ) {
+        ESP_LOGE(TAG, "Multisampling configuration failed");
+        goto ds_create__error_after_sampling_timer_configuration;
     }
+
+    // Configure Storage
+    if ( (err = configure_storage(
+        &((*handle)->storage),
+        args->storage.queue_size
+    )) ) {
+        ESP_LOGE(TAG, "Storage configuration failed");
+        goto ds_create__error_after_multisampling_configuration;
+    }
+
+    // Log handle properties
+    ESP_LOGI(TAG, "Created handle with properties:\n"
+                  " - Name                   > %s\n"
+                  " - ADC Channel            > %d\n"
+                  " - Corresponding GPIO Pin > %d\n"
+                  " - Sampling Period (ms)   > %d\n"
+                  " - Multisampling          > %s\n"
+                  " - Samples Per Reading    > %d",
+                  (*handle)->name,
+                  get_channel_num(&((*handle)->adc_input)),
+                  get_channel_gpio_num(&((*handle)->adc_input)),
+                  (*handle)->sampling_timer.period_ms,
+                  (*handle)->multisampling.enabled ? "Enabled" : "Disabled",
+                  (*handle)->multisampling.samples_per_reading
+    );
 
     return ESP_OK;
 
-ds_create_error__after_sampling_configuration:
-    _deconfigure_sampling(&((*handle)->sampling));
-ds_create_error__after_adc_input_configuration:
-    _deconfigure_adc_input(&((*handle)->adc_input));
-ds_create_error__after_handle_allocation:
+ds_create__error_after_multisampling_configuration:
+    delete_multisampling(&((*handle)->multisampling));
+ds_create__error_after_sampling_timer_configuration:
+    delete_sampling_timer(&((*handle)->sampling_timer));
+ds_create__error_after_adc_input_configuration:
+    delete_adc_input(&((*handle)->adc_input));
+ds_create__error_after_handle_allocation:
     free(*handle);
 
     return err;
 }
 
-// DESTROY FUNCTION
+// Delete Distance Sensor Handle
 void distance_sensor_delete(distance_sensor_handle_t handle) {
-    _deconfigure_readings(&(handle->readings));
-    _deconfigure_sampling(&(handle->sampling));
-    _deconfigure_adc_input(&(handle->adc_input));
+    static const char *TAG = "(Distance Sensor) Delete";
+
+    // Stop sampling
+    stop_sampling_timer(&(handle->sampling_timer));
+
+    // Delete storage
+    delete_storage(&(handle->storage));
+
+    // Delete multisampling
+    delete_multisampling(&(handle->multisampling));
+
+    // Delete sampling timer
+    delete_sampling_timer(&(handle->sampling_timer));
+
+    // Delete ADC input
+    delete_adc_input(&(handle->adc_input));
+
+    // Free handle
     free(handle);
+
+    ESP_LOGI(TAG, "Deleted handle");
 }
 
-// START FUNCTION
+// Start Distance Sensor Sampling
 esp_err_t distance_sensor_start(distance_sensor_handle_t handle) {
     static const char *TAG = "(Distance Sensor) Start";
     esp_err_t err;
@@ -164,16 +226,17 @@ esp_err_t distance_sensor_start(distance_sensor_handle_t handle) {
         return ESP_ERR_INVALID_ARG;
     }
 
-    // Start sampling
-    if ( (err = _start_sampling(&(handle->sampling))) ) {
-        ESP_LOGE(TAG, "Error starting sampling");
+    // Start sampling timer
+    if ( (err = start_sampling_timer(&(handle->sampling_timer))) ) {
+        ESP_LOGE(TAG, "Error starting sampling timer");
         return err;
     }
 
+    ESP_LOGI(TAG, "Started sampling");
     return ESP_OK;
 }
 
-// STOP FUNCTION
+// Stop Distance Sensor Sampling
 esp_err_t distance_sensor_stop(distance_sensor_handle_t handle) {
     static const char *TAG = "(Distance Sensor) Stop";
     esp_err_t err;
@@ -183,12 +246,13 @@ esp_err_t distance_sensor_stop(distance_sensor_handle_t handle) {
         return ESP_ERR_INVALID_ARG;
     }
 
-    // Stop sampling
-    if ( (err = _stop_sampling(&(handle->sampling))) ) {
-        ESP_LOGE(TAG, "Error stopping sampling");
+    // Stop sampling timer
+    if ( (err = stop_sampling_timer(&(handle->sampling_timer))) ) {
+        ESP_LOGE(TAG, "Error stopping sampling timer");
         return err;
     }
 
+    ESP_LOGI(TAG, "Stopped sampling");
     return ESP_OK;
 }
 
@@ -205,12 +269,9 @@ esp_err_t distance_sensor_get_reading(
         return ESP_ERR_INVALID_ARG;
     }
 
-    // Get oldest reading
-    if ( (err = _get_oldest_reading(
-        &(handle->readings),
-        reading
-    )) ) {
-        ESP_LOGE(TAG, "Error getting oldest reading");
+    // Retrieve last reading
+    if ( (err = pop_reading(&(handle->storage), reading)) ) {
+        ESP_LOGE(TAG, "Could not retrieve last reading");
         return err;
     }
 

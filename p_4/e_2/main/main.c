@@ -7,7 +7,7 @@
 #include "soc/adc_channel.h"
 
 
-ESP_EVENT_DEFINE_BASE(DISTANCE_SENSOR_EVENT);
+ESP_EVENT_DEFINE_BASE(DISTANCE_SENSOR_EVENTS);
 
 // event handler
 static void distance_sensor_event_handler(
@@ -16,7 +16,7 @@ static void distance_sensor_event_handler(
     int32_t id,
     void* event_data
 ) {
-    static const char *TAG = "DISTANCE_SENSOR_EVENT_READING";
+    static const char *TAG = "DISTANCE_SENSOR_READING_EVENT";
     
     // get handle
     distance_sensor_handle_t handle = *((distance_sensor_handle_t *) event_data);
@@ -29,13 +29,11 @@ static void distance_sensor_event_handler(
     ESP_LOGI(TAG, "\n"
                   " - Name          > %s\n"
                   " - Reading No.   > %lld\n"
-                  " - Timestamp     > %lld\n"
                   " - ADC reading   > %d\n"
                   " - Voltage (mV)  > %d\n"
                   " - Distance (mm) > %d",
                   distance_sensor_get_name(handle),
-                  reading.num,
-                  reading.timestamp,
+                  reading.reading_id,
                   reading.adc_reading,
                   reading.voltage_mv,
                   reading.distance_mm
@@ -50,9 +48,9 @@ void app_main(void)
     distance_sensor_create_args_t create_args = DISTANCE_SENSOR_CREATE_ARGS_DEFAULT();
     create_args.name = "distance_sensor";
     create_args.adc_input.channel_num = 0;
-    create_args.sampling.period_ms = 1000;
-    create_args.sampling.samples = 32;
-    create_args.readings.queue_size = 10;
+    create_args.sampling_timer.period_ms = 1000;
+    create_args.multisampling.samples_per_reading = 32;
+    create_args.storage.queue_size = 10;
 
     // log GPIO num
     ESP_LOGI(TAG, "GPIO: %d", ADC1_CHANNEL_0_GPIO_NUM);
@@ -64,8 +62,8 @@ void app_main(void)
     // Register DISTANCE_SENSOR_EVENT_READING event handler
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     ESP_ERROR_CHECK(esp_event_handler_register(
-        DISTANCE_SENSOR_EVENT,
-        DISTANCE_SENSOR_EVENT_READING,
+        DISTANCE_SENSOR_EVENTS,
+        DISTANCE_SENSOR_READING_EVENT,
         distance_sensor_event_handler,
         NULL
     ));
@@ -93,8 +91,8 @@ void app_main(void)
 
     // Unregister DISTANCE_SENSOR_EVENT_READING event handler
     esp_event_handler_unregister(
-        DISTANCE_SENSOR_EVENT,
-        DISTANCE_SENSOR_EVENT_READING,
+        DISTANCE_SENSOR_EVENTS,
+        DISTANCE_SENSOR_READING_EVENT,
         distance_sensor_event_handler
     );
 
