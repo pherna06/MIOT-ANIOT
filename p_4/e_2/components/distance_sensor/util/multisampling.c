@@ -1,5 +1,10 @@
 #include "util/multisampling.h"
 
+// inclde for ESP logs
+#include "esp_log.h"
+
+static char const *TAG = "Distance Sensor [Multisampling Utils]";
+
 // FUNCTIONS //
 
 // Configure Multisampling
@@ -7,8 +12,6 @@ esp_err_t configure_multisampling(
     multisampling_t *multisampling,
     int samples_per_reading
 ) {
-    static const char *TAG = "(Distance Sensor Utils) Configure Multisampling";
-
     // If samples per reading < 1, multisampling is disabled
     if (samples_per_reading < 1) {
         multisampling->enabled = false;
@@ -38,7 +41,6 @@ esp_err_t do_multisampling(
     void *read_fn_arg,
     int *result
 ) {
-    static const char *TAG = "(Distance Sensor Utils) Do Multisampling";
     esp_err_t err;
 
     // If multisampling is disabled, just read once

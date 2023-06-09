@@ -1,5 +1,10 @@
 #include "util/adc1.h"
 
+// inclde for ESP logs
+#include "esp_log.h"
+
+static char const *TAG = "Distance Sensor [ADC1 Utils]";
+
 // Static ADC1 Characteristics //
 static esp_adc_cal_characteristics_t _adc1_chars;
 
@@ -100,7 +105,6 @@ esp_err_t configure_adc1_input(
     int gpio_num,
     int channel_num
 ) {
-    static const char *TAG = "(Distance Sensor Utils) Configure ADC Input";
     esp_err_t err;
 
     // Get channel from gpio_num or channel_num
@@ -175,8 +179,6 @@ esp_err_t read_adc1_input(
     adc1_input_t *adc1_input,
     int *value
 ) {
-    static const char *TAG = "(Distance Sensor Utils) Read ADC Input";
-
     // Read ADC1 channel
     if ( (*value = adc1_get_raw(adc1_input->channel)) == -1 ) {
         ESP_LOGE(TAG, "Error reading ADC1");

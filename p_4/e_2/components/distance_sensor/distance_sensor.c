@@ -7,6 +7,11 @@
 
 #include "string.h"
 
+// inclde for ESP logs
+#include "esp_log.h"
+
+static char const *TAG = "Distance Sensor";
+
 
 // Distance Sensor [Handle] //
 #define DISTANCE_SENSOR_NAME_BUFSIZE 32
@@ -47,7 +52,6 @@ uint8_t _voltage_mv_to_distance_mm(int voltage_mv) {
 
 // SAMPLING FUNCTION [FOR SAMPLING TIMER] //
 void _sampling_fn(void *arg) {
-    static const char *TAG = "(Distance Sensor) Sampling Function";
     esp_err_t err;
 
     distance_sensor_handle_t handle = (distance_sensor_handle_t) arg;
@@ -103,7 +107,6 @@ esp_err_t distance_sensor_create(
     distance_sensor_create_args_t *args,
     distance_sensor_handle_t *handle
 ) {
-    static const char *TAG = "(Distance Sensor) Create";
     esp_err_t err;
 
     // Check handle is not created
@@ -193,7 +196,6 @@ ds_create__error_after_handle_allocation:
 
 // Delete Distance Sensor Handle
 void distance_sensor_delete(distance_sensor_handle_t handle) {
-    static const char *TAG = "(Distance Sensor) Delete";
 
     // Stop sampling
     stop_sampling_timer(&(handle->sampling_timer));
@@ -218,7 +220,6 @@ void distance_sensor_delete(distance_sensor_handle_t handle) {
 
 // Start Distance Sensor Sampling
 esp_err_t distance_sensor_start(distance_sensor_handle_t handle) {
-    static const char *TAG = "(Distance Sensor) Start";
     esp_err_t err;
 
     if ( handle == NULL ) {
@@ -238,7 +239,6 @@ esp_err_t distance_sensor_start(distance_sensor_handle_t handle) {
 
 // Stop Distance Sensor Sampling
 esp_err_t distance_sensor_stop(distance_sensor_handle_t handle) {
-    static const char *TAG = "(Distance Sensor) Stop";
     esp_err_t err;
 
     if ( handle == NULL ) {
@@ -261,7 +261,6 @@ esp_err_t distance_sensor_get_reading(
     distance_sensor_handle_t handle,
     distance_sensor_reading_t *reading
 ) {
-    static const char *TAG = "(Distance Sensor) Get Last Reading";
     esp_err_t err;
 
     if ( handle == NULL ) {

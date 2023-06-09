@@ -1,5 +1,10 @@
 #include "util/storage.h"
 
+// inclde for ESP logs
+#include "esp_log.h"
+
+static char const *TAG = "Distance Sensor [Storage Utils]";
+
 // Storage [for Distance Sensor Handle] //
 #define READING_SIZE sizeof(distance_sensor_reading_t)
 
@@ -10,8 +15,6 @@ esp_err_t configure_storage(
     storage_t *storage,
     int queue_size
 ) {
-    static const char *TAG = "(Distance Sensor Util) Configure Storage";
-
     // If queue size < 2, queue size is 1
     if (queue_size < 2) {
         queue_size = 1;
@@ -39,7 +42,6 @@ esp_err_t push_reading(
     storage_t *storage,
     distance_sensor_reading_t *reading
 ) {
-    static const char *TAG = "(Distance Sensor Util) Push Reading";
     esp_err_t err;
 
     // If queue is full, pop oldest reading
@@ -65,8 +67,6 @@ esp_err_t pop_reading(
     storage_t *storage,
     distance_sensor_reading_t *reading
 ) {
-    static const char *TAG = "(Distance Sensor Util) Pop Reading";
-
     // Pop reading from queue
     if ( xQueueReceive(storage->queue, reading, 0) != pdTRUE ) {
         ESP_LOGE(TAG, "Could not pop reading from queue");

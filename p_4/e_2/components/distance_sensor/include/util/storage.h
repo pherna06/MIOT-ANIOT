@@ -4,9 +4,6 @@
 // For ESP errors
 #include "esp_err.h"
 
-// For ESP log
-#include "esp_log.h"
-
 // For FreeRTOS queue
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"

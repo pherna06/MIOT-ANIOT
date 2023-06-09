@@ -1,5 +1,10 @@
 #include "util/sampling_timer.h"
 
+// inclde for ESP logs
+#include "esp_log.h"
+
+static char const *TAG = "Distance Sensor [Sampling Timer Utils]";
+
 
 
 // FUNCTIONS //
@@ -10,7 +15,6 @@ esp_err_t configure_sampling_timer(
     void *sampling_fn_arg,
     uint32_t period_ms
 ) {
-    static const char *TAG = "(Distance Sensor Util) Configure Sampling Timer";
     esp_err_t err;
 
     // Create timer
@@ -33,9 +37,7 @@ esp_err_t configure_sampling_timer(
 
 void delete_sampling_timer(
     sampling_timer_t *sampling_timer
-) {
-    static const char *TAG = "(Distance Sensor Util) Delete Sampling Timer";
-    
+) {    
     esp_err_t err;
     if ( (err = esp_timer_delete(sampling_timer->timer)) ) {
         ESP_LOGW(TAG, "Could not delete timer: %s", esp_err_to_name(err));
@@ -45,7 +47,6 @@ void delete_sampling_timer(
 esp_err_t start_sampling_timer(
     sampling_timer_t *sampling_timer
 ) {
-    static const char *TAG = "(Distance Sensor Util) Start Sampling Timer";
     esp_err_t err;
     
     if ( (err = esp_timer_start_periodic(
@@ -62,7 +63,6 @@ esp_err_t start_sampling_timer(
 esp_err_t stop_sampling_timer(
     sampling_timer_t *sampling_timer
 ) {
-    static const char *TAG = "(Distance Sensor Util) Stop Sampling Timer";
     esp_err_t err;
 
     if ( !(esp_timer_is_active(sampling_timer->timer)) ) {

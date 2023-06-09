@@ -4,9 +4,6 @@
 // For ESP errors
 #include "esp_err.h"
 
-// For ESP log
-#include "esp_log.h"
-
 // For ESP ADC
 #include "driver/adc.h"
 #include "esp_adc_cal.h"

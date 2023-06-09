@@ -4,8 +4,8 @@
 // For ESP errors
 #include "esp_err.h"
 
-// For ESP log
-#include "esp_log.h"
+// For bool
+#include <stdbool.h>
 
 // Multisampling [for Distance Sensor Handle] //
 typedef struct multisampling {
