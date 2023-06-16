@@ -12,6 +12,23 @@
 
 static char const *TAG = "Distance Sensor";
 
+// Voltage to Distance Logic
+// Points (mV, 1/mm) //
+// Point 0
+#define POINT0_X 300
+#define POINT0_Y 1 / (400 + 4.2)
+
+// Point 1
+#define POINT1_X 2000
+#define POINT1_Y 1 / (60 + 4.2)
+
+// Point 2
+#define POINT2_X 3000
+#define POINT2_Y 1 / (35 + 4.2)
+
+// Slopes
+static float _SLOPE_01 = (POINT1_Y - POINT0_Y) / (POINT1_X - POINT0_X);
+static float _SLOPE_12 = (POINT2_Y - POINT1_Y) / (POINT2_X - POINT1_X);
 
 // Distance Sensor [Handle] //
 #define DISTANCE_SENSOR_NAME_BUFSIZE 32
@@ -33,25 +50,21 @@ struct distance_sensor_handle {
 };
 
 // VOLTAGE TO DISTANCE FUNCTION [LINEAR APPROXIMATION] //
-uint8_t _voltage_mv_to_distance_mm(int voltage_mv) {
-    // Point 1
-    // · x (mV)                   = 300
-    // · y (1/mm) = 1/(400 + 4.2) = 0.002474
+static int _voltage_mv_to_distance_mm(int voltage_mv) {
+    // Out of range
+    if ( voltage_mv < POINT0_X ) {
+        return -1;
+    }
 
-    // Point 2
-    // · x (mV)                   = 3000
-    // · y (1/mm) = 1/(35 + 4.2)  = 0.025510
+    float y = (voltage_mv < POINT1_X) ?
+        (voltage_mv - POINT0_X) * _SLOPE_01 + POINT0_Y :
+        (voltage_mv - POINT1_X) * _SLOPE_12 + POINT1_Y;
 
-    // line equation given two points
-    static const float m = (0.025510 - 0.002474) / (3000 - 300);
-    float y = m * ( (float) voltage_mv - 300 ) - 0.002474;
-
-    // from 1/(L + 4.2) = y, where L is distance in mm
-    return (uint8_t) ( (1 / y) - 4.2 );
+    return (int) ((1 / y) - 4.2);
 }
 
 // SAMPLING FUNCTION [FOR SAMPLING TIMER] //
-void _sampling_fn(void *arg) {
+static void _sampling_fn(void *arg) {
     esp_err_t err;
 
     distance_sensor_handle_t handle = (distance_sensor_handle_t) arg;
@@ -72,7 +85,7 @@ void _sampling_fn(void *arg) {
     int voltage_mv = adc_reading_to_voltage_mv(adc_reading);
 
     // To distance
-    uint8_t distance_mm = _voltage_mv_to_distance_mm(voltage_mv);
+    int distance_mm = _voltage_mv_to_distance_mm(voltage_mv);
 
     // Create reading
     distance_sensor_reading_t reading;
