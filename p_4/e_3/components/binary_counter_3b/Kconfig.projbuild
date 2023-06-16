@@ -1,0 +1,33 @@
+menu "Binary Counter Configuration"
+    menu "Default Args"
+        config BINARY_COUNTER_3B_DEFAULT_NAME
+            string "Binary Counter 3B Default Name"
+            default "Binary Counter 3B"
+            help
+                Select the default name of the binary counter 3B.
+
+        config BINARY_COUNTER_3B_DEFAULT_BIT0_GPIO
+            int "Binary Counter 3B Default Bit0"
+            default 0
+            help
+                Select the default bit0 of the binary counter 3B.
+
+        config BINARY_COUNTER_3B_DEFAULT_BIT1_GPIO
+            int "Binary Counter 3B Default Bit1"
+            default 0
+            help
+                Select the default bit1 of the binary counter 3B.
+
+        config BINARY_COUNTER_3B_DEFAULT_BIT2_GPIO
+            int "Binary Counter 3B Default Bit2"
+            default 0
+            help
+                Select the default bit2 of the binary counter 3B.
+
+        config BINARY_COUNTER_3B_DEFAULT_INITIAL_VALUE
+            int "Binary Counter 3B Default Initial Value"
+            default 0
+            help
+                Select the default initial value of the binary counter 3B.
+    endmenu
+endmenu

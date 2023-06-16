@@ -1,0 +1,121 @@
+menu "App Configuration"
+    config DISTANCE_SENSOR_TASK
+        bool "Enable Distance Sensor"
+        default y
+        help
+            Enable distance sensor.
+            Default is disabled.
+
+    menu "Distance Sensor Configuration"
+        depends on DISTANCE_SENSOR_TASK
+
+        config DISTANCE_SENSOR_GPIO_INPUT
+            int "GPIO Input Pin"
+            default 32
+            range 0 39
+            help
+                Select the GPIO input of the distance sensor.
+                Default is GPIO 32 (ADC Channel 4).
+
+        config DISTANCE_SENSOR_SAMPLING_PERIOD_MS
+            int "Sampling Period (ms)"
+            default 2000
+            help
+                Select the sampling period of the distance sensor.
+
+        config DISTANCE_SENSOR_SAMPLES_PER_READING
+            int "Samples Per Reading"
+            default 32
+            help
+                Select the samples per reading of the distance sensor.
+
+        config DISTANCE_SENSOR_QUEUE_SIZE
+            int "Queue Size"
+            default 1
+            help
+                Select the queue size of the distance sensor.
+    endmenu
+
+    config HALL_SENSOR_TASK
+        bool "Enable Hall Sensor"
+        default y
+        help
+            Enable hall sensor.
+            Default is disabled.
+
+    menu "Hall Sensor Configuration"
+        depends on HALL_SENSOR_TASK
+
+        config HALL_SENSOR_PERIOD_MS
+            int "Period (ms)"
+            default 1000
+            help
+                Select the period of the hall sensor.
+    endmenu
+
+    config BINARY_COUNTER_3B_TASK
+        bool "Enable Binary Counter (3-bit)"
+        default y
+        help
+            Enable binary counter (3-bit).
+            Default is disabled.
+
+    menu "Binary Counter (3-bit) Configuration"
+        depends on BINARY_COUNTER_3B_TASK
+
+        config BINARY_COUNTER_3B_GPIO_BIT0
+            int "GPIO Pin > Bit 0"
+            default 17
+            range 0 39
+            help
+                Select the GPIO pin for bit 0 of the binary counter.
+                Default is GPIO 16.
+        
+        config BINARY_COUNTER_3B_GPIO_BIT1
+            int "GPIO Pin > Bit 1"
+            default 18
+            range 0 39
+            help
+                Select the GPIO pin for bit 1 of the binary counter.
+                Default is GPIO 17.
+
+        config BINARY_COUNTER_3B_GPIO_BIT2
+            int "GPIO Pin > Bit 2"
+            default 19
+            range 0 39
+            help
+                Select the GPIO pin for bit 2 of the binary counter.
+                Default is GPIO 18.
+
+        config BINARY_COUNTER_3B_INITIAL_VALUE
+            int "Initial Value"
+            default 0
+            range 0 7
+            help
+                Select the initial value of the binary counter.
+                Default is 0.
+
+        config BINARY_COUNTER_3B_GPIO_RESET
+            int "GPIO Input Pin For Counter Reset"
+            default 16
+            range 0 39
+            help
+                Select the GPIO pin for reset of the binary counter.
+                Default is GPIO 19.
+    endmenu
+
+    config APP_TIMEOUT
+        bool "Enable App Timeout"
+        default n
+        help
+            Enable app timeout.
+            Default is disabled.
+
+    config APP_TIMEOUT_MS
+        depends on APP_TIMEOUT
+        int "App Timeout (ms)"
+        default 30000
+        help
+            Select the app timeout.
+            Default is 30000 ms.
+endmenu
