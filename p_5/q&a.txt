@@ -1,0 +1,26 @@
+e_1 -> Uso de `i2ctools`
+
+e_2 -> Lectura de temperatura
+
+e_3 -> Uso de CRC en sensor
+
+e_4 -> Aplicación con FSM
+
+Cuestiones
+
+  Q > La dirección del sensor es 1000000 (es decir, 0x40 expresado en
+    hexadecimal). Si queremos hacer una operación de lectura (bit R/W a 1),
+    ¿cómo construiiremos el segundo argumento de la llamada a
+    `i2c_master_write_byte()` que haremos tras `i2c_master_start()`?
+
+  A > 
+
+  Q > ¿Cuál es la diferencia entre 0xE3 y 0xF3? ¿Qué es 'clock stretching'?
+
+  A > 
+
+  Q > Dichos comandos devuelven 2 bytes, que leeremos en dos variables
+    diferentes. ¿Cómo obtenemos posteriormente nuestro número de 16 bits para
+    calcular la temperatura?
+
+  A >
