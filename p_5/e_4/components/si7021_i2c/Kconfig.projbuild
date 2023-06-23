@@ -1,0 +1,253 @@
+menu "Si7012 I2C Configuration"
+
+    # I2C Specs ----------------------------------------------------------------
+    menu "I2C Specs"
+        config SI7021_I2C_ADDRESS
+            hex "Sensor I2C Address"
+            default 0x40
+            help
+                Default is 0x40.
+
+        config SI7021_I2C_MAX_CLOCK_SPEED
+            int "Max Sensor I2C Clock Speed (Hz)"
+            default 400000
+            help
+                Default is 400000.
+
+
+
+        # Command Codes --------------------------------------------------------
+        menu "Command Codes"
+            # Measure Commands -------------------------------------------------
+            config SI7021_I2C_CMD_MEASURE_RH_HOLD_MASTER
+                hex "Measure Relative Humidity, Hold Master Mode"
+                default 0xE5
+                help
+                    Default is 0xE5.
+
+            config SI7021_I2C_CMD_MEASURE_RH_NOHOLD_MASTER
+                hex "Measure Relative Humidity, No Hold Master Mode"
+                default 0xF5
+                help
+                    Default is 0xF5.
+
+            config SI7021_I2C_CMD_MEASURE_TEMP_HOLD_MASTER
+                hex "Measure Temperature, Hold Master Mode"
+                default 0xE3
+                help
+                    Default is 0xE3.
+
+            config SI7021_I2C_CMD_MEASURE_TEMP_NOHOLD_MASTER
+                hex "Measure Temperature, No Hold Master Mode"
+                default 0xF3
+                help
+                    Default is 0xF3.
+
+            config SI7021_I2C_CMD_READ_TEMP_FROM_PREV_RH_MEASUREMENT
+                hex "Read Temperature Value from Previous RH Measurement"
+                default 0xE0
+                help
+                    Default is 0xE0.
+            # ------------------------------------------------------------------
+
+            # Reset and Register Commands --------------------------------------
+            config SI7021_I2C_CMD_RESET
+                hex "Reset"
+                default 0xFE
+                help
+                    Default is 0xFE.
+
+            config SI7021_I2C_CMD_WRITE_RH_T_USER_REG_1
+                hex "Write RH/T User Register 1"
+                default 0xE6
+                help
+                    Default is 0xE6.
+
+            config SI7021_I2C_CMD_READ_RH_T_USER_REG_1
+                hex "Read RH/T User Register 1"
+                default 0xE7
+                help
+                    Default is 0xE7.
+
+            config SI7021_I2C_CMD_WRITE_HEATER_CONTROL_REG
+                hex "Write Heater Control Register"
+                default 0x51
+                help
+                    Default is 0x51.
+
+            config SI7021_I2C_CMD_READ_HEATER_CONTROL_REG
+                hex "Read Heater Control Register"
+                default 0x11
+                help
+                    Default is 0x11.
+            # ------------------------------------------------------------------
+
+            # Electronic ID and Firmware Commands ------------------------------
+            config SI7021_I2C_CMD_READ_ELECTRONIC_ID_FIRST_BYTES_A
+                hex "Read Electronic ID First Bytes, Part A"
+                default 0xFA
+                help
+                    Default is 0xFA.
+
+            config SI7021_I2C_CMD_READ_ELECTRONIC_ID_FIRST_BYTES_B
+                hex "Read Electronic ID First Bytes, Part B"
+                default 0x0F
+                help
+                    Default is 0x0F.
+
+            config SI7021_I2C_CMD_READ_ELECTRONIC_ID_LAST_BYTES_A
+                hex "Read Electronic ID Last Bytes, Part A"
+                default 0xFC
+                help
+                    Default is 0xFC.
+
+            config SI7021_I2C_CMD_READ_ELECTRONIC_ID_LAST_BYTES_B
+                hex "Read Electronic ID Last Bytes, Part B"
+                default 0xC9
+                help
+                    Default is 0xC9.
+
+            config SI7021_I2C_CMD_READ_FIRMWARE_REVISION_A
+                hex "Read Firmware Revision, Part A"
+                default 0x84
+                help
+                    Default is 0x84.
+
+            config SI7021_I2C_CMD_READ_FIRMWARE_REVISION_B
+                hex "Read Firmware Revision, Part B"
+                default 0xB8
+                help
+                    Default is 0xB8.
+            # ------------------------------------------------------------------
+
+        endmenu
+        # ----------------------------------------------------------------------
+
+    endmenu
+    # --------------------------------------------------------------------------
+
+
+
+    # Default Args for Si7012 I2C Handle ---------------------------------------
+    menu "Default Args for Si7012 I2C Handle"
+        # Name, Port, Retry Timeout --------------------------------------------
+        config SI7021_I2C_DEFAULT_NAME
+            string "Name"
+            default "si7021_i2c"
+            help
+                Default Si7021 I2C Handle name.
+
+        config SI7021_I2C_DEFAULT_I2C_PORT
+            int "I2C Port"
+            default 0
+            range 0 1
+            help
+                Default Si7021 I2C Port.
+
+        config SI7021_I2C_DEFAULT_I2C_DRIVER_RETRY_TIMEOUT_MS
+            int "I2C Driver Retry Timeout (ms)"
+            default 2000
+            help
+                Default Si7021 I2C Cmd Timeout (ms).
+        # ----------------------------------------------------------------------
+
+        # I2C Driver Install Flag -----------------------------------------------
+        config SI7021_I2C_DEFAULT_I2C_DRIVER_INSTALL_BOOL
+            bool "Install I2C Driver"
+            default y
+            help
+                Install Si7021 I2C Driver at handle creation.
+
+        config SI7021_I2C_DEFAULT_I2C_DRIVER_INSTALL
+            int
+            default 1 if SI7021_I2C_DEFAULT_I2C_DRIVER_INSTALL_BOOL
+            default 0
+        # ----------------------------------------------------------------------
+
+        # I2C Driver Set Config Flag --------------------------------------------
+        config SI7021_I2C_DEFAULT_I2C_DRIVER_SET_CONFIG_BOOL
+            bool "Set I2C Driver Config" if SI7021_I2C_DEFAULT_I2C_DRIVER_INSTALL_BOOL
+            default y
+            help
+                Set Si7021 I2C Driver Config at handle creation.
+
+        config SI7021_I2C_DEFAULT_I2C_DRIVER_SET_CONFIG
+            int
+            default 1 if SI7021_I2C_DEFAULT_I2C_DRIVER_SET_CONFIG_BOOL
+            default 0
+        # ----------------------------------------------------------------------
+
+        # I2C Driver Uninstall Flag --------------------------------------------
+        config SI7021_I2C_DEFAULT_I2C_DRIVER_UNINSTALL_AT_DELETE_BOOL
+            bool "Uninstall I2C Driver at handle deletion" if SI7021_I2C_DEFAULT_I2C_DRIVER_INSTALL_BOOL
+            default y
+            help
+                Uninstall Si7021 I2C Driver at handle deletion.
+
+        config SI7021_I2C_DEFAULT_I2C_DRIVER_UNINSTALL_AT_DELETE
+            int
+            default 1 if SI7021_I2C_DEFAULT_I2C_DRIVER_UNINSTALL_AT_DELETE_BOOL
+            default 0
+        # ----------------------------------------------------------------------
+
+
+
+        # I2C Driver Config ----------------------------------------------------
+        menu "I2C Driver Config"
+            visible if SI7021_I2C_DEFAULT_I2C_DRIVER_SET_CONFIG_BOOL
+
+            # SCL and SDA GPIOs ------------------------------------------------
+            config SI7021_I2C_DEFAULT_I2C_DRIVER_CONFIG_SCL_IO
+                int "SCL GPIO"
+                default 19
+                help
+                    SCL GPIO.
+
+            config SI7021_I2C_DEFAULT_I2C_DRIVER_CONFIG_SDA_IO
+                int "SDA GPIO"
+                default 18
+                help
+                    SDA GPIO.
+            # ------------------------------------------------------------------
+
+            # SCL Pull Up Enable Flag -------------------------------------------
+            config SI7021_I2C_DEFAULT_I2C_DRIVER_CONFIG_SCL_PULLUP_EN_BOOL
+                bool "SCL Pullup Enable"
+                default y
+                help
+                    SCL Pullup Enable.
+
+            config SI7021_I2C_DEFAULT_I2C_DRIVER_CONFIG_SCL_PULLUP_EN
+                int
+                default 1 if SI7021_I2C_DEFAULT_I2C_DRIVER_CONFIG_SCL_PULLUP_EN_BOOL
+                default 0
+            # ------------------------------------------------------------------
+
+            # SDA Pull Up Enable Flag -------------------------------------------
+            config SI7021_I2C_DEFAULT_I2C_DRIVER_CONFIG_SDA_PULLUP_EN_BOOL
+                bool "SDA Pullup Enable"
+                default y
+                help
+                    SDA Pullup Enable.
+
+            config SI7021_I2C_DEFAULT_I2C_DRIVER_CONFIG_SDA_PULLUP_EN
+                int
+                default 1 if SI7021_I2C_DEFAULT_I2C_DRIVER_CONFIG_SDA_PULLUP_EN_BOOL
+                default 0
+            # ------------------------------------------------------------------
+
+            # Master Clock Speed -----------------------------------------------
+            config SI7021_I2C_DEFAULT_I2C_DRIVER_CONFIG_MASTER_CLK_SPEED
+                int "Master Clock Speed"
+                default 400000
+                help
+                    Master Clock Speed.
+            # ------------------------------------------------------------------
+
+        endmenu
+        # ----------------------------------------------------------------------
+
+    endmenu
+    # --------------------------------------------------------------------------
+
+endmenu

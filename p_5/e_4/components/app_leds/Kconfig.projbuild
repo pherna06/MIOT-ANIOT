@@ -1,0 +1,81 @@
+menu "App LEDs Configuration"
+
+    config APP_LEDS_BLINK_PERIOD_MS
+        int "Blink period (ms)"
+        default 250
+        help
+            This option sets the blink period in milliseconds.
+
+    config APP_LEDS_NUM
+        int "Number of LEDs"
+        default 6
+        range 1 8
+        help
+          This option sets the number of LEDs that will be used by the
+          application.
+
+    config APP_LEDS_GPIO_LED_0
+        int "LED 0 GPIO" if APP_LEDS_NUM > 0
+        default 32
+        range 0 33
+        help
+            This option sets the GPIO number that will be used by the
+            application to control the LED 0.
+
+    config APP_LEDS_GPIO_LED_1
+        int "LED 1 GPIO" if APP_LEDS_NUM > 1
+        default 33
+        range 0 33
+        help
+            This option sets the GPIO number that will be used by the
+            application to control the LED 1.
+
+    config APP_LEDS_GPIO_LED_2
+        int "LED 2 GPIO" if APP_LEDS_NUM > 2
+        default 25
+        range 0 33
+        help
+            This option sets the GPIO number that will be used by the
+            application to control the LED 2.
+
+    config APP_LEDS_GPIO_LED_3
+        int "LED 3 GPIO" if APP_LEDS_NUM > 3
+        default 26
+        range 0 33
+        help
+            This option sets the GPIO number that will be used by the
+            application to control the LED 3.
+
+    config APP_LEDS_GPIO_LED_4
+        int "LED 4 GPIO" if APP_LEDS_NUM > 4
+        default 27
+        range 0 33
+        help
+            This option sets the GPIO number that will be used by the
+            application to control the LED 4.
+
+    config APP_LEDS_GPIO_LED_5
+        int "LED 5 GPIO" if APP_LEDS_NUM > 5
+        default 14
+        range 0 33
+        help
+            This option sets the GPIO number that will be used by the
+            application to control the LED 5.
+
+    config APP_LEDS_GPIO_LED_6
+        int "LED 6 GPIO" if APP_LEDS_NUM > 6
+        default 12
+        range 0 33
+        help
+            This option sets the GPIO number that will be used by the
+            application to control the LED 6.
+
+    config APP_LEDS_GPIO_LED_7
+        int "LED 7 GPIO" if APP_LEDS_NUM > 7
+        default 13
+        range 0 33
+        help
+            This option sets the GPIO number that will be used by the
+            application to control the LED 7.
+
+endmenu

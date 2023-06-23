@@ -1,0 +1,13 @@
+menu "App Configuration"
+    config APP_DURATION_MS
+        int "App Duration (ms)"
+        default 180000
+        help
+            Duration in milliseconds of the application.
+
+    config APP_SI7021_PERIOD_MS
+        int "SI7021 Period (ms)"
+        default 1000
+        help
+            Period in milliseconds between SI7021 sensor reads.
+endmenu # "App Configuration"

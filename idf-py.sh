@@ -1,7 +1,7 @@
 CURRENTDIR=$(pwd)
 
 DOCKER_CMD="docker run --rm -it -v $CURRENTDIR:/project -w /project"
-DOCKER_IMG="espressif/idf:release-v4.3"
+DOCKER_IMG="espressif/idf:release-v4.4"
 IDF_PY="idf.py"
 
 # Serial port

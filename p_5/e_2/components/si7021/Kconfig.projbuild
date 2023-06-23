@@ -1,0 +1,249 @@
+menu "Si7021 Configuration"
+
+    menu "Default Args for Si7021 Handle"
+
+        config SI7021_DEFAULT_NAME
+            string "Name"
+            default "si7021"
+            help
+                Default name for the Si7021 handle.
+
+        menu "CRC Config"
+
+            config SI7021_DEFAULT_CRC_CONFIG_GLOBAL_BOOL
+                bool "Global"
+                default y
+                help
+                    Enable global CRC config.
+
+            config SI7021_DEFAULT_CRC_CONFIG_GLOBAL
+                int
+                default 1 if SI7021_DEFAULT_CRC_CONFIG_GLOBAL_BOOL
+                default 0
+
+            config SI7021_DEFAULT_CRC_CONFIG_RH_BOOL
+                bool "RH" if !SI7021_DEFAULT_CRC_CONFIG_GLOBAL_BOOL
+                default n
+                help
+                    Enable RH CRC config.
+
+            config SI7021_DEFAULT_CRC_CONFIG_RH
+                int
+                default 1 if SI7021_DEFAULT_CRC_CONFIG_RH_BOOL
+                default 0
+
+            config SI7021_DEFAULT_CRC_CONFIG_TEMP_BOOL
+                bool "Temp" if !SI7021_DEFAULT_CRC_CONFIG_GLOBAL_BOOL
+                default n
+                help
+                    Enable Temp CRC config.
+
+            config SI7021_DEFAULT_CRC_CONFIG_TEMP
+                int
+                default 1 if SI7021_DEFAULT_CRC_CONFIG_TEMP_BOOL
+                default 0
+
+            config SI7021_DEFAULT_CRC_CONFIG_SNA_BOOL
+                bool "SNA (Serial Number [63:32])" if !SI7021_DEFAULT_CRC_CONFIG_GLOBAL_BOOL
+                default n
+                help
+                    Enable SNA CRC config.
+
+            config SI7021_DEFAULT_CRC_CONFIG_SNA
+                int
+                default 1 if SI7021_DEFAULT_CRC_CONFIG_SNA_BOOL
+                default 0
+
+            config SI7021_DEFAULT_CRC_CONFIG_SNB_BOOL
+                bool "SNB (Serial Number [31:0])" if !SI7021_DEFAULT_CRC_CONFIG_GLOBAL_BOOL
+                default n
+                help
+                    Enable SNB CRC config.
+
+            config SI7021_DEFAULT_CRC_CONFIG_SNB
+                int
+                default 1 if SI7021_DEFAULT_CRC_CONFIG_SNB_BOOL
+                default 0
+
+        endmenu
+
+        menu "Read Wait"
+
+            config SI7021_DEFAULT_READ_WAIT_MS_GLOBAL
+                int "Global"
+                default 0
+                help
+                    Read wait in ticks.
+
+            config SI7021_DEFAULT_READ_WAIT_MS_RH
+                int "RH" if SI7021_DEFAULT_READ_WAIT_MS_GLOBAL = 0
+                default 30
+                help
+                    RH read wait in ticks.
+
+            config SI7021_DEFAULT_READ_WAIT_MS_TEMP
+                int "Temp" if SI7021_DEFAULT_READ_WAIT_MS_GLOBAL = 0
+                default 20
+                help
+                    Temp read wait in ticks.
+
+            config SI7021_DEFAULT_READ_WAIT_MS_USER_REG
+                int "User Register" if SI7021_DEFAULT_READ_WAIT_MS_GLOBAL = 0
+                default 10
+                help
+                    User register read wait in ticks.
+
+            config SI7021_DEFAULT_READ_WAIT_MS_HEATER_REG
+                int "Heater Register" if SI7021_DEFAULT_READ_WAIT_MS_GLOBAL = 0
+                default 10
+                help
+                    Heater register read wait in ticks.
+
+            config SI7021_DEFAULT_READ_WAIT_MS_SNA
+                int "SNA (Serial Number [63:32])" if SI7021_DEFAULT_READ_WAIT_MS_GLOBAL = 0
+                default 10
+                help
+                    SNA read wait in ticks.
+
+            config SI7021_DEFAULT_READ_WAIT_MS_SNB
+                int "SNB (Serial Number [31:0])" if SI7021_DEFAULT_READ_WAIT_MS_GLOBAL = 0
+                default 10
+                help
+                    SNB read wait in ticks.
+
+            config SI7021_DEFAULT_READ_WAIT_MS_FW
+                int "FW Revision" if SI7021_DEFAULT_READ_WAIT_MS_GLOBAL = 0
+                default 10
+                help
+                    FW read wait in ticks.
+
+        endmenu
+
+        menu "At Init Config"
+
+            config SI7021_DEFAULT_AT_INIT_RESET_BOOL
+                bool "Reset"
+                default y
+                help
+                    Perform a reset command at init.
+
+            config SI7021_DEFAULT_AT_INIT_RESET
+                int
+                default 1 if SI7021_DEFAULT_AT_INIT_RESET_BOOL
+                default 0
+
+            config SI7021_DEFAULT_AT_INIT_SET_HEATER_LEVEL_BOOL
+                bool "Set Heater Level"
+                default n
+                help
+                    Set heater level at init.
+
+            config SI7021_DEFAULT_AT_INIT_SET_HEATER_LEVEL
+                int
+                default 1 if SI7021_DEFAULT_AT_INIT_SET_HEATER_LEVEL_BOOL
+                default 0
+
+            config SI7021_DEFAULT_AT_INIT_HEATER_LEVEL
+                hex "Heater Level" if SI7021_DEFAULT_AT_INIT_SET_HEATER_LEVEL_BOOL
+                default 0x00
+                range 0x00 0x0F
+                help
+                    Heater level at init. Minimum is 0x00, maximum is 0x0F.
+
+            config SI7021_DEFAULT_AT_INIT_SET_USER_REGISTER_INFO_BOOL
+                bool "Set User Register Info"
+                default n
+                help
+                    Set user register info at init.
+
+            config SI7021_DEFAULT_AT_INIT_SET_USER_REGISTER_INFO
+                int
+                default 1 if SI7021_DEFAULT_AT_INIT_SET_USER_REGISTER_INFO_BOOL
+                default 0
+
+            menu "User Register Info (Resolution & Heater State)"
+                visible if SI7021_DEFAULT_AT_INIT_SET_USER_REGISTER_INFO_BOOL
+
+                choice
+                    prompt "Resolution"
+                    default SI7021_DEFAULT_AT_INIT_SET_USER_REGISTER_INFO_RESOLUTION_12_14
+
+                    config SI7021_DEFAULT_AT_INIT_SET_USER_REGISTER_INFO_RESOLUTION_12_14
+                        bool "RH 12-bit | Temp 14-bit"
+
+                    config SI7021_DEFAULT_AT_INIT_SET_USER_REGISTER_INFO_RESOLUTION_8_12
+                        bool "RH 8-bit | Temp 12-bit"
+
+                    config SI7021_DEFAULT_AT_INIT_SET_USER_REGISTER_INFO_RESOLUTION_10_13
+                        bool "RH 10-bit | Temp 13-bit"
+
+                    config SI7021_DEFAULT_AT_INIT_SET_USER_REGISTER_INFO_RESOLUTION_11_11
+                        bool "RH 11-bit | Temp 11-bit"
+                endchoice
+
+                config SI7021_DEFAULT_AT_INIT_RESOLUTION
+                    hex
+                    default 0x00 if SI7021_DEFAULT_AT_INIT_SET_USER_REGISTER_INFO_RESOLUTION_12_14
+                    default 0x01 if SI7021_DEFAULT_AT_INIT_SET_USER_REGISTER_INFO_RESOLUTION_8_12
+                    default 0x80 if SI7021_DEFAULT_AT_INIT_SET_USER_REGISTER_INFO_RESOLUTION_10_13
+                    default 0x81 if SI7021_DEFAULT_AT_INIT_SET_USER_REGISTER_INFO_RESOLUTION_11_11
+
+                choice
+                    prompt "Heater State"
+                    default SI7021_DEFAULT_AT_INIT_SET_USER_REGISTER_INFO_HEATER_STATE_OFF
+
+                    config SI7021_DEFAULT_AT_INIT_SET_USER_REGISTER_INFO_HEATER_STATE_OFF
+                        bool "Off"
+
+                    config SI7021_DEFAULT_AT_INIT_SET_USER_REGISTER_INFO_HEATER_STATE_ON
+                        bool "On"
+                endchoice
+
+                config SI7021_DEFAULT_AT_INIT_HEATER_STATE
+                    hex
+                    default 0x00 if SI7021_DEFAULT_AT_INIT_SET_USER_REGISTER_INFO_HEATER_STATE_OFF
+                    default 0x04 if SI7021_DEFAULT_AT_INIT_SET_USER_REGISTER_INFO_HEATER_STATE_ON
+            endmenu
+
+            menu "Dump to Log"
+
+                config SI7021_DEFAULT_AT_INIT_DUMP_DEVICE_INFO_BOOL
+                    bool "Device Info"
+                    default y
+                    help
+                        Dump device info to log at init.
+
+                config SI7021_DEFAULT_AT_INIT_DUMP_DEVICE_INFO
+                    int
+                    default 1 if SI7021_DEFAULT_AT_INIT_DUMP_DEVICE_INFO_BOOL
+                    default 0
+
+                config SI7021_DEFAULT_AT_INIT_DUMP_CRC_CONFIG_BOOL
+                    bool "CRC Config"
+                    default n
+                    help
+                        Dump CRC config to log at init.
+
+                config SI7021_DEFAULT_AT_INIT_DUMP_CRC_CONFIG
+                    int
+                    default 1 if SI7021_DEFAULT_AT_INIT_DUMP_CRC_CONFIG_BOOL
+                    default 0
+
+                config SI7021_DEFAULT_AT_INIT_DUMP_READ_WAIT_BOOL
+                    bool "Read Wait"
+                    default n
+                    help
+                        Dump read wait to log at init.
+
+                config SI7021_DEFAULT_AT_INIT_DUMP_READ_WAIT
+                    int
+                    default 1 if SI7021_DEFAULT_AT_INIT_DUMP_READ_WAIT_BOOL
+                    default 0
+
+            endmenu
+
+        endmenu
+
+    endmenu
+
+endmenu

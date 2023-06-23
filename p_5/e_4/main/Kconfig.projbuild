@@ -1,0 +1,51 @@
+menu "App Configuration"
+
+    config APP_TIMER_PERIOD_MS
+        int "Timer Period (ms)"
+        default 1000
+        help
+            Period in milliseconds between timer ticks.
+    
+    config APP_TIMER_READ_HALL_EVERY
+        int "Timer Cycles to Read Hall"
+        default 1
+        help
+            Number of timer cycles between hall sensor reads.
+
+    config APP_TIMER_READ_TEMP_EVERY
+        int "Timer Cycles to Read Temp"
+        default 2
+        help
+            Number of timer cycles between temperature sensor reads.
+
+    config APP_TIMER_LOG_READINGS_EVERY
+        int "Timer Cycles to Log Readings"
+        default 5
+        help
+            Number of timer cycles between logging readings.
+    
+    menu "Hall Sampling"
+        config APP_HALL_BASE_TIMEOUT_MS
+            int "Hall Base Timeout (ms)"
+            default 2000
+            help
+                Time to sample hall sensor to get a baseline mean value.
+
+        config APP_HALL_THRESH
+            int "Hall Threshold"
+            default 25
+            help
+                Threshold for hall sensor to trigger blinking LEDs.
+
+    endmenu # "Hall Sampling"
+
+    menu "Temp Sampling"
+        config APP_TEMP_BASE_TIMEOUT_MS
+            int "Temp Base Timeout (ms)"
+            default 2000
+            help
+                Time to sample temperature sensor to get a baseline mean value.
+
+    endmenu # "Temp Sampling"
+
+endmenu # "App Configuration"
