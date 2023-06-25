@@ -1,5 +1,12 @@
 // INCLUDES -------------------------------------------------------------------
 
+/* vTaskDelay() */
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
+/* ADC */
+#include "driver/adc.h"
+
 /* Logging */
 #include <esp_log.h>
 
