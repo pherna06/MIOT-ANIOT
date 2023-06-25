@@ -1,5 +1,10 @@
 e_1 -> Muestreo periódico del sensor de efecto Hall
 
+    Crea una aplicación que lea el valor del sensor de efecto Hall cada 2
+  segundos y muestre el valor leído por el puerto serie.
+
+  ------------------------------------------------------------------------------
+
   Q > ¿Qué prioridad tiene la tarea inicial que ejecuta la función `app_main()`?
     ¿Con qué llamada de ESP-IDF podemos conocer la prioridad de una tarea?
 
@@ -13,7 +18,19 @@ e_1 -> Muestreo periódico del sensor de efecto Hall
     dicha tarea es la que se está ejecutando, basta con pasar un 'handle'
     `NULL`.
 
+********************************************************************************
+
 e_2 -> Creación de una tarea para realizar el muestreo
+
+    Modifica el código anterior para crear una nueva tarea que sea la encargada
+  de realizar el muestreo. Dicha tarea comunicará la lectura con la tarea
+  inicial (la que ejecuta `app_main()`) a través de una variable global.
+    
+    La tarea creada leerá el valor del sensor de efecto Hall con un periodo que
+  se pasará como argumento a la tarea. La tarea inicial recogerá ese valor y lo
+  mostrará por el puerto serie.
+
+  ------------------------------------------------------------------------------
 
   Q > ¿Cómo sincronizas ambas tareas? ¿Cómo sabe la tarea inicial que hay un
     nuevo dato generado por la tarea muestreadora?
@@ -34,6 +51,8 @@ e_2 -> Creación de una tarea para realizar el muestreo
       * Se añade un pequeño 'delay' en el bucle de la tarea principal para que
     no salte el 'watchdog' de la tarea `IDLE`.
 
+  ------------------------------------------------------------------------------
+
     Q > Si además de pasar el periodo como parámetro, quisiéramos pasar como
       argumento la dirección en la que la tarea muestreadora debe escribir las
       lecturas, ¿cómo pasaríamos los dos argumentos a la nueva tarea?
@@ -43,7 +62,17 @@ e_2 -> Creación de una tarea para realizar el muestreo
       muestreo y otra variable que determina la dirección (puntero) en la que
       almacenar los valores muestreados.
 
+********************************************************************************
+
 e_3 -> Comunicación mediante colas
+
+    Modifica el código anterior para que las dos tareas se comuniquen mediante
+  una cola de ESP-IDF.
+
+    La tarea creada recibirá como argumento el periodo de muestreo y la cola en
+  la que deberá escribir los datos leídos.
+
+  ------------------------------------------------------------------------------
   
   Q > Al enviar un dato por una cola, ¿el dato se pasa por copia o por
     referencia? Consulta la documentación para responder.
@@ -61,7 +90,20 @@ e_3 -> Comunicación mediante colas
     último valor disponible de la cola en la memoria de la variable que hemos
     pasado como referencia a dicha función.
 
+********************************************************************************
+
 e_4 -> Uso de eventos
+
+    Finalmente, se modificará nuevamente el código de muestre original para que
+  utilice eventos para notificar que hay una nueva lectura que mostrar por el
+  puerto serie.
+
+    La tarea creada recibirá como argumento el periodo de muestreo. Cuando tenga
+  una nueva muestra, la comunicará a través de `esp_event_post_to()`. La tarea
+  inicial registrará un 'handler' que se encargará de escribir en el puerto
+  serie.
+
+  ------------------------------------------------------------------------------
 
   Q > ¿Qué debe hacer la tarea inicial tras registrar el 'handle'? ¿Puede
     finalizar?
@@ -78,7 +120,36 @@ e_4 -> Uso de eventos
     periodo de muestreo) de dicha tarea están almacenados en la pila de 
     `app_main`.
 
+********************************************************************************
+
 e_5 -> Gestión de múltiples tareas
+
+    Se creará un sistema con múltiples tareas que se comunicarán entre sí por
+  eventos:
+
+    - Tarea 'Sampler', similar a la del apartado anterior. Comunicará sus
+    muestras mediante eventos.
+    
+    - Tarea 'Filter', que irá acumulando muestras de la tarea 'Sampler' y
+    realizará la media de las últimas 5 muestras recibidas. Enviará dicha media
+    mediante un evento.
+
+    - Tarea 'Logger', que escribe por puerto serie lo que le comunican otras
+    tareas. Debe ser una tarea diferente a la inicial. Recibirá información a
+    través de los eventos correspondientes (a los que deberá suscribirse).
+
+    - Tarea 'Monitor', que monitoriza el estado de las otras tareas creadas.
+    Usará el API de Tareas para consultar el espacio de pila restante de cada
+    tarea. Comunicará los datos a la tarea 'Logger', incluyendo nombre de la
+    tarea, prioridad y cantidad de pila restante. Puede usar la llamada
+    `vTaskGetInfo()` que devuelve un tipo `TaskStatus_t`. Enviará la información
+    periódicamente (cada minuto) a través de un evento.
+
+    La tarea inicial creará las tareas 'Sampler', 'Filter', 'Logger' y, por
+  último, la tarea 'Monitor' que recibirá los 'handlers' de las tareas
+  anteriores.
+
+  ------------------------------------------------------------------------------
 
   Q > ¿Qué opinas de esta estructura de código? ¿Es razonable el número de
     tareas empleado? ¿Qué cambiarías en el diseño?
@@ -93,3 +164,5 @@ e_5 -> Gestión de múltiples tareas
       Respecto al diseño general, se podríán plantear mejoras como la
     modularización de las distintas funcionalidades en componentes de ESP-IDF
     (comando `idf.py create-component`).
+
+********************************************************************************
