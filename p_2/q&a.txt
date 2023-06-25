@@ -149,6 +149,12 @@ e_5 -> Gestión de múltiples tareas
   último, la tarea 'Monitor' que recibirá los 'handlers' de las tareas
   anteriores.
 
+    El código debe organizarse en varios ficheros fuente: uno para la
+  funcionalidad relativa al muestreo del sensor y su filtrado, otro para el
+  'logging' y otro para la monitorización de tareas. Si se usa algún tipo de
+  datos propio (por ejemplo, una cola circular para el filtrado), se incluirá en
+  otro fichero fuente diferente, con su fichero de cabecera correspondiente.
+
   ------------------------------------------------------------------------------
 
   Q > ¿Qué opinas de esta estructura de código? ¿Es razonable el número de
