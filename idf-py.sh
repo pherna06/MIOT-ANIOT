@@ -17,9 +17,9 @@ do
         -t|--tag)
         DOCKER_IMG="$DOCKER_BASE_IMG:$2"
 
-        if   [[ $2 == "release-v4.*" ]]; then
+        if   [[ $2 == "release-v4."* ]]; then
             DOCKER_CMD_ARGS="$DOCKER_CMD_ARGS -e CMAKE_VER=3.5"
-        elif [[ $2 == "release-v5.*" ]]; then
+        elif [[ $2 == "release-v5."* ]]; then
             DOCKER_CMD_ARGS="$DOCKER_CMD_ARGS -e CMAKE_VER=3.16"
         else
             DOCKER_CMD_ARGS="$DOCKER_CMD_ARGS -e CMAKE_VER=3.5"
