@@ -4,6 +4,7 @@ CURRENTDIR=$(pwd)
 DOCKER_CMD="docker run"
 DOCKER_CMD_ARGS="--rm -it -v $CURRENTDIR:/project -w /project"
 DOCKER_BASE_IMG="espressif/idf"
+DOCKER_IMG="$DOCKER_BASE_IMG:latest" # default image
 
 # idf.py Command
 IDF_PY="idf.py"
