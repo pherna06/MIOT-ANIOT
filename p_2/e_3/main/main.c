@@ -61,7 +61,6 @@ void app_main(void)
     esp_err_t err;
 
     // > Log Hall Sensor GPIO use warning
-    ESP_LOGI(TAG, "Start of app_main");
     ESP_LOGW(TAG, "T\n> This app takes readings from the internal Hall sensor, "
                   "which uses channels 0 and 3 of ADC1 "
                   "(GPIO 36 and 39)"
