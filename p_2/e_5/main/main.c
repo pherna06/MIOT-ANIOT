@@ -1,94 +1,85 @@
-#include <stdio.h>
+// INCLUDES --------------------------------------------------------------------
 
-// include esp_event for event loop
-#include <esp_event.h>
+/* Tasks */
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
-// include esp_log for logging
-#include <esp_log.h>
+/* Errors */
+#include "esp_err.h"
 
-// include ADC1 and Hall Sensor
-#include <driver/adc.h>
+/* Hall Sampling */
+#include "hall_sampling.h"
 
-// include task.h for tasks
-#include <freertos/task.h>
+/* Task Monitor */
+#include "task_monitor.h"
 
-// include queue.h for queues
-#include <freertos/queue.h>
+/* Logger */
+#include "logger.h"
 
-#include "app_events.h"
-ESP_EVENT_DEFINE_BASE(APP_EVENTS);
+// -----------------------------------------------------------------------------
 
-#include "fifo_queue.c"
-#include "hall_sensor.c"
-#include "logger.c"
-#include "monitor.c"
+// DEFINES ---------------------------------------------------------------------
+
+#define HALL_SAMPLING_SAMPLE_PERIOD_MS 1000
+#define HALL_SAMPLING_FILTER_SAMPLES_NUM 5
+
+#define TASK_MONITOR_PERIOD_MS 60000
+
+#define APP_DURATION_MS 150000
+
+// -----------------------------------------------------------------------------
+
+// APP MAIN --------------------------------------------------------------------
 
 void app_main(void)
 {
-    // TAG
-    static const char *TAG = "app_main";
+    // > Initialize Hall Sampling
+    ESP_ERROR_CHECK(hall_sampling_init());
+
+    // > Initialize Task Monitor
+    ESP_ERROR_CHECK(task_monitor_init());
+
+    // > Add Tasks to Task Monitor
+    ESP_ERROR_CHECK(task_monitor_add_task(
+        hall_sampling_get_sampler_task_handle()));
+    ESP_ERROR_CHECK(task_monitor_add_task(
+        hall_sampling_get_filter_task_handle()));
+    ESP_ERROR_CHECK(task_monitor_add_task(
+        logger_get_logger_task_handle()));
+    ESP_ERROR_CHECK(task_monitor_add_task(
+        task_monitor_get_monitor_task_handle()));
     
-    // Create APP_EVENTS event loop
-    esp_event_loop_handle_t app_events_loop;
-    ESP_LOGI(TAG, "Creating APP_EVENTS event loop");
-    esp_event_loop_args_t app_events_args = {
-        .queue_size = 10,
-        .task_name = "app_events_loop",
-        .task_priority = 5,
-        .task_stack_size = 8192,
-        .task_core_id = tskNO_AFFINITY
-    };
-    ESP_ERROR_CHECK(esp_event_loop_create(&app_events_args, &app_events_loop));
-    
-    // Start Logger Task
-    ESP_LOGI(TAG, "Starting logger task");
-    TaskHandle_t logger_task_handle;
-    struct logger_task_parameters logger_task_params = {
-        .app_events_loop = app_events_loop
-    };
-    xTaskCreate(logger_task, "logger_task", 16 * 1024,
-            &logger_task_params, 1, &logger_task_handle);
 
-    // Start Sampler Task for Hall Sensor
-    ESP_LOGI(TAG, "Starting hall sampler task");
-    TaskHandle_t hall_sampler_task_handle;
-    struct hall_sampler_task_parameters hall_sampler_task_params = {
-        .period_ms = 1000,
-        .app_events_loop = app_events_loop
-    };
-    xTaskCreate(hall_sampler_task, "hall_sampler_task", 2048,
-            &hall_sampler_task_params, 1, &hall_sampler_task_handle);
+    // > Start Logger
+    ESP_ERROR_CHECK(logger_start());
 
-    // Start Filter Task for Hall Sensor
-    ESP_LOGI(TAG, "Starting hall filter task");
-    TaskHandle_t hall_filter_task_handle;
-    struct hall_filter_task_parameters hall_filter_task_params = {
-        .num_samples = 5,
-        .app_events_loop = app_events_loop
-    };
-    xTaskCreate(hall_filter_task, "hall_filter_task", 2048,
-            &hall_filter_task_params, 1, &hall_filter_task_handle);
 
-    // Start Monitor Task
-    ESP_LOGI(TAG, "Starting monitor task");
-    TaskHandle_t monitor_task_handle;
-    TaskHandle_t handles[] = {
-        logger_task_handle,
-        hall_sampler_task_handle,
-        hall_filter_task_handle
-    };
-    struct monitor_task_parameters monitor_task_params = {
-        .handles = handles,
-        .num_handles = sizeof(handles) / sizeof(handles[0]),
-        .period_ms = 60000,
-        .app_events_loop = app_events_loop
-    };
-    xTaskCreate(monitor_task, "monitor_task", 2048,
-            &monitor_task_params, 1, &monitor_task_handle);
+    // > Start Hall Sampling
+    ESP_ERROR_CHECK(hall_sampling_start(
+        HALL_SAMPLING_SAMPLE_PERIOD_MS   ,
+        HALL_SAMPLING_FILTER_SAMPLES_NUM )
+    );
 
-    // Wait while monitor task is running (to keep handles in context)
-    while (monitor_task_handle != NULL)
-    {
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
+    // > Start Task Monitor
+    ESP_ERROR_CHECK(task_monitor_start(TASK_MONITOR_PERIOD_MS));
+
+    // > Delay for APP_DURATION_MS
+    vTaskDelay(APP_DURATION_MS / portTICK_PERIOD_MS);
+
+    // > Stop Task Monitor
+    ESP_ERROR_CHECK(task_monitor_stop());
+
+    // > Stop Hall Sampling
+    ESP_ERROR_CHECK(hall_sampling_stop());
+
+    // > Stop Logger
+    ESP_ERROR_CHECK(logger_stop());
+
+    // > Deinitialize Task Monitor
+    ESP_ERROR_CHECK(task_monitor_deinit());
+
+    // > Deinitialize Hall Sampling
+    ESP_ERROR_CHECK(hall_sampling_deinit());
 }
+
+// -----------------------------------------------------------------------------

@@ -1,116 +1,297 @@
-#include <stdio.h>
+// INCLUDES --------------------------------------------------------------------
+
+/* C-Strings */
 #include <string.h>
 
-// Event Log Structure
-struct EventLog_t
-{
-    char event_name[64];
-    char event_data[1028];
+/* Tasks & Queues */
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/queue.h"
+
+/* Errors */
+#include <esp_err.h>
+
+/* Events */
+#include <esp_event.h>
+
+/* Hall Sampling (EVENTS) */
+#include <hall_sampling.h>
+
+/* Task Monitor (EVENTS) */
+#include <task_monitor.h>
+
+/* Logging */
+#include <esp_log.h>
+
+static const char *TAG = "app_main";
+
+// -----------------------------------------------------------------------------
+
+// DEFINES ---------------------------------------------------------------------
+
+/* Event Message */
+#define EVENT_MSG_NAME_SIZE 64
+#define EVENT_MSG_DATA_SIZE 1028
+
+/* Event Message Queue Size */
+#define EVENT_MSG_QUEUE_SIZE 10
+
+// STATIC VARIABLES ------------------------------------------------------------
+
+/* Logger Task Handle */
+static TaskHandle_t _logger_task_handle;
+
+// -----------------------------------------------------------------------------
+
+// STRUCTURES -----------------------------------------------------------------
+
+struct event_message {
+    char event_name[EVENT_MSG_NAME_SIZE];
+    char event_data[EVENT_MSG_DATA_SIZE];
 };
 
-// Logger Task Event handler
-void logger_task_event_handler(
-        void *handler_args,
-        esp_event_base_t base,
-        int32_t id,
-        void *event_data)
+// TASKS -----------------------------------------------------------------------
+
+//// EVENT HANDLERS ------------------------------------------------------------
+
+/* Hall Sampling Events Handler */
+static void hall_sampling_events_handler(
+    void *handler_args    ,
+    esp_event_base_t base ,
+    int32_t id            ,
+    void *event_data      )
 {
-    // Get event log queue
-    QueueHandle_t event_log_queue = *(QueueHandle_t *)handler_args;
-
-    // Create event log
-    struct EventLog_t event_log;
+    BaseType_t rtos;
     
-    // If HALL_EVENT_NEWSAMPLE
-    if (id == HALL_EVENT_NEWSAMPLE)
-    {
-        // Copy event name
-        strcpy(event_log.event_name, "HALL_EVENT_NEWSAMPLE");
+    // > Get event message queue
+    QueueHandle_t event_message_queue = *(QueueHandle_t *)handler_args;
 
-        // Make event_data message
-        sprintf(event_log.event_data, "New sample: %d", *(int *)event_data);
-    }
-    
-    // If HALL_EVENT_FILTERSAMPLE
-    else if (id == HALL_EVENT_FILTERSAMPLE)
-    {
-        // Copy event name
-        strcpy(event_log.event_name, "HALL_EVENT_FILTERSAMPLE");
+    // > Create event message
+    struct event_message event_message;
 
-        // Make event_data message
-        sprintf(event_log.event_data, "Filtered sample: %f", *(float *)event_data);
-    }
-
-    // If APP_EVENT_MONITOR
-    else if (id == APP_EVENT_MONITOR)
-    {
-        // Copy event name
-        strcpy(event_log.event_name, "APP_EVENT_MONITOR");
-
-        // Make event_data message
-        // - task name
-        // - task priority
-        // - task left stack size
-        TaskStatus_t *task_status = (TaskStatus_t *)event_data;
-        sprintf(event_log.event_data,
-            "Task: %s | Priority: %d | Left stack size: %d",
-            task_status->pcTaskName,
-            task_status->uxCurrentPriority,
-            task_status->usStackHighWaterMark
-        );
-    }
-
-    // Unknown event
-    else
-    {
-        // Copy event name
-        strcpy(event_log.event_name, "UNKNOWN_EVENT");
-
-        // Make event_data message
-        strcpy(event_log.event_data, "");
+    // > Fill event message
+    switch (id) {
+        case HALL_SAMPLING_EVENT_NEW_SAMPLE:
+            strncpy(
+                event_message.event_name         ,
+                "HALL_SAMPLING_EVENT_NEW_SAMPLE" ,
+                EVENT_MSG_NAME_SIZE             );
+            sprintf(
+                event_message.event_data ,
+                "New sample: %d"         ,
+                *(int *)event_data      );
+            break;
+        case HALL_SAMPLING_EVENT_FILTER_SAMPLE:
+            strncpy(
+                event_message.event_name            ,
+                "HALL_SAMPLING_EVENT_FILTER_SAMPLE" ,
+                EVENT_MSG_NAME_SIZE                );
+            sprintf(
+                event_message.event_data ,
+                "Filtered sample: %f"    ,
+                *(float *)event_data     );
+            break;
+        default:
+            strncpy(
+                event_message.event_name      ,
+                "HALL_SAMPLING_EVENT_UNKONWN" ,
+                EVENT_MSG_NAME_SIZE          );
+            sprintf(
+                event_message.event_data ,
+                "Unknown event id: %d"   ,
+                id                      );
     }
 
-    // Push to event queue
-    xQueueSend(event_log_queue, &event_log, 0);
+    // > Push event message to queue
+    if ( (rtos = xQueueSend(
+        event_message_queue ,
+        &event_message      ,
+        0                   )
+    ) != pdTRUE ) {
+        ESP_LOGW(TAG, "Error pushing event message to queue");
+    }
 }
 
-struct logger_task_parameters
+/* Task Monitor Events Handler */
+static void task_monitor_events_handler(
+    void *handler_args    ,
+    esp_event_base_t base ,
+    int32_t id            ,
+    void *event_data      )
 {
-    esp_event_loop_handle_t app_events_loop;
-};
+    BaseType_t rtos;
+    
+    // > Get event message queue
+    QueueHandle_t event_message_queue = *(QueueHandle_t *)handler_args;
 
-void logger_task(void *pvParameters)
+    // > Create event message
+    struct event_message event_message;
+
+    // > Fill event message
+    switch (id) {
+        case TASK_MONITOR_EVENT_NEW_STATUS:
+            strncpy(
+                event_message.event_name        ,
+                "TASK_MONITOR_EVENT_NEW_STATUS" ,
+                EVENT_MSG_NAME_SIZE            );
+            sprintf(
+                event_message.event_data                            ,
+                "Task: %s | Priority: %d | Left stack size: %d"     ,
+                ((TaskStatus_t *)event_data)->pcTaskName            ,
+                ((TaskStatus_t *)event_data)->uxCurrentPriority     ,
+                ((TaskStatus_t *)event_data)->usStackHighWaterMark );
+            break;
+        default:
+            strncpy(
+                event_message.event_name      ,
+                "TASK_MONITOR_EVENT_UNKONWN" ,
+                EVENT_MSG_NAME_SIZE          );
+            sprintf(
+                event_message.event_data ,
+                "Unknown event id: %d"   ,
+                id                      );
+    }
+
+    // > Push event message to queue
+    if ( (rtos = xQueueSend(
+        event_message_queue ,
+        &event_message      ,
+        0                   )
+    ) != pdTRUE ) {
+        ESP_LOGW(TAG, "Error pushing event message to queue");
+    }
+}
+
+//// ---------------------------------------------------------------------------
+
+/* Logger Task */
+void logger_task(
+    void *pvParameters )
 {
-    // TAG
-    static const char *TAG = "LOGGER_TASK";
+    BaseType_t rtos;
+    esp_err_t err;
 
-    // params
-    struct logger_task_parameters *params =
-            (struct logger_task_parameters *)pvParameters;
-    
-    // Create Event Logs queue
-    QueueHandle_t event_logs_queue;
-    event_logs_queue = xQueueCreate(10, sizeof(struct EventLog_t));
-    
-    // APP_EVENTS handler for logger task
-    ESP_ERROR_CHECK(
-        esp_event_handler_register_with(
-            params->app_events_loop, APP_EVENTS, ESP_EVENT_ANY_ID,
-            &logger_task_event_handler, &event_logs_queue)
-    );
+    // > Create event message queue
+    QueueHandle_t event_message_queue;
+    event_message_queue = xQueueCreate(
+        EVENT_MSG_QUEUE_SIZE          ,
+        sizeof(struct event_message) );
+    if (event_message_queue == NULL) {
+        ESP_LOGE(TAG, "Error creating event message queue");
+        vTaskDelete(NULL);
+    }
 
-    struct EventLog_t event_log;
-    int queue_wait = 10 / portTICK_PERIOD_MS;
-    while (1)
-    {
-        // Check if event in queue
-        if (xQueueReceive(event_logs_queue, &event_log, queue_wait) == pdTRUE)
-        {
-            // Log event
-            ESP_LOGI(TAG, "..."
-                          "\n  > Event: %s"
-                          "\n  > Data: %s",
-                          event_log.event_name, event_log.event_data);
+    // > Register HALL_SAMPLING_EVENTS handler
+    const esp_event_loop_handle_t *hall_sampling_events_loop = 
+        hall_sampling_get_event_loop_handle();
+    if ( (err = esp_event_handler_instance_register_with(
+        *hall_sampling_events_loop    ,
+        HALL_SAMPLING_EVENTS          ,
+        ESP_EVENT_ANY_ID              ,
+        &hall_sampling_events_handler ,
+        &event_message_queue          ,
+        NULL                          )
+    ) ) {
+        ESP_LOGE(TAG, "Error registering HALL_SAMPLING_EVENTS handler");
+        vQueueDelete(event_message_queue);
+        vTaskDelete(NULL);
+    }
+
+    // > Register TASK_MONITOR_EVENTS handler
+    const esp_event_loop_handle_t *monitor_events_loop =
+        task_monitor_get_event_loop_handle();
+    if ( (err = esp_event_handler_instance_register_with(
+        *monitor_events_loop         ,
+        TASK_MONITOR_EVENTS          ,
+        ESP_EVENT_ANY_ID             ,
+        &task_monitor_events_handler ,
+        &event_message_queue         ,
+        NULL                         )
+    ) ) {
+        ESP_LOGE(TAG, "Error registering TASK_MONITOR_EVENTS handler");
+        vQueueDelete(event_message_queue);
+        vTaskDelete(NULL);
+    }
+
+    // > Logging Loop
+    struct event_message event_message;
+    while (1) {
+        // > Wait for new event message
+        if ( (rtos = xQueueReceive(
+            event_message_queue ,
+            &event_message      ,
+            portMAX_DELAY       )
+        ) != pdTRUE ) {
+            ESP_LOGE(TAG, "Error receiving event message from queue");
+            vTaskDelete(NULL);
         }
+
+        // > Log event message
+        ESP_LOGI(TAG, "..."
+                      "\n  > Event: %s"
+                      "\n  > Data: %s"          ,
+                      event_message.event_name  ,
+                      event_message.event_data );
     }
 }
+
+// -----------------------------------------------------------------------------
+
+// PUBLIC FUNCTIONS ------------------------------------------------------------
+
+/* Start Logger Task */
+esp_err_t logger_start(
+    void )
+{
+    BaseType_t rtos;
+
+    // > Check if logger task is already running
+    if (_logger_task_handle != NULL) {
+        ESP_LOGW(TAG, "Logger task is already running");
+        return ESP_FAIL;
+    }
+
+    // > Create logger task
+    if ( (rtos = xTaskCreate(
+        logger_task            ,
+        "logger_task"          ,
+        8192                   ,
+        NULL                   ,
+        1                      ,
+        &_logger_task_handle   )
+    ) != pdPASS ) {
+        ESP_LOGE(TAG, "Error creating logger task");
+        return ESP_FAIL;
+    }
+
+    // > Return
+    return ESP_OK;
+}
+
+/* Stop Logger Task */
+esp_err_t logger_stop(
+    void )
+{
+    // > Check if logger task is running
+    if (_logger_task_handle == NULL) {
+        ESP_LOGW(TAG, "Logger task is not running");
+        return ESP_FAIL;
+    }
+
+    // > Delete logger task
+    vTaskDelete(_logger_task_handle);
+
+    // > Return
+    return ESP_OK;
+}
+
+//// GETTERS -------------------------------------------------------------------
+
+/* Get Logger Task Handle */
+const TaskHandle_t *logger_get_logger_task_handle(
+    void )
+{ return &_logger_task_handle; }
+
+//// ---------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
